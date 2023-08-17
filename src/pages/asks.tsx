@@ -1,6 +1,7 @@
 import MainLayout from '@/layouts/MainLayout';
 import React, { useState, useEffect } from 'react';
 import { fetchFirestore } from '../../firebase/helpers'; // Importe o seu helper de Firestore corretamente
+import Link from 'next/link';
 // Importe o seu helper de Firestore corretamente
 
 interface QuestionProps {
@@ -18,7 +19,7 @@ const Question: React.FC<QuestionProps> = ({ title, description, upvotes, downvo
         <h5 className="text-lg font-semibold mb-2 text-gray-800">{title}</h5>
         <div className="flex space-x-2">
           <button className="text-blue-500 hover:underline">Responder</button>
-          <div className="flex space-x-1 items-center">
+          {/* <div className="flex space-x-1 items-center">
             <span className="text-gray-600">{upvotes}</span>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 1a1 1 0 011 1v12h5a1 1 0 110 2h-6a1 1 0 01-1-1V2a1 1 0 011-1z" clipRule="evenodd" />
@@ -29,7 +30,7 @@ const Question: React.FC<QuestionProps> = ({ title, description, upvotes, downvo
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 18a1 1 0 01-1-1v-12a1 1 0 011-1h6a1 1 0 110 2h-5v10a1 1 0 01-1 1z" clipRule="evenodd" />
             </svg>
-          </div>
+          </div> */}
         </div>
       </div>
       {description && <p className="text-gray-700 mb-2">{description}</p>}
@@ -46,13 +47,15 @@ const QuestionList: React.FC<QuestionListProps> = ({ questions }) => {
   return (
     <div>
       {questions.map((question, index) => (
+        <Link key={index} href={`/ask/${question.id}`}>
         <Question
-          key={index}
-          title={question.title}
-          description={question.description}
-          upvotes={question.upvotes}
-          downvotes={question.downvotes}
-        />
+            key={index}
+            title={question.title}
+            description={question.description}
+            upvotes={question.upvotes}
+            downvotes={question.downvotes} id={''}        
+          />
+        </Link>
       ))}
     </div>
   );
@@ -123,22 +126,21 @@ const Asks: React.FC = () => {
   const [questions, setQuestions] = useState<QuestionProps[]>([]);
 
   useEffect(() => {
-    const unsubscribe = fetchFirestore.getDocs('asks', (doc: any) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title,
-        description: data.description,
-        upvotes: data.upvotes,
-        downvotes: data.downvotes,
-      };
-    }).then((updatedQuestions: QuestionProps[]) => {
-      setQuestions(updatedQuestions);
-    });
-
-    return () => {
-      unsubscribe();
-    };
+    const unsubscribe: any = () => {
+        fetchFirestore.getDocs('asks', (doc: any) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              title: data.title,
+              description: data.description,
+              upvotes: data.upvotes,
+              downvotes: data.downvotes,
+            };
+          }).then((updatedQuestions: QuestionProps[] | any) => {
+            setQuestions(updatedQuestions);
+          });
+    } 
+    unsubscribe()
   }, []);
 
   const handleQuestionSubmit = async (newQuestion: QuestionProps) => {
@@ -146,9 +148,9 @@ const Asks: React.FC = () => {
   };
 
   return (
-    <MainLayout className="container mt-5">
-      <h1 className="text-2xl font-semibold mb-4 text-gray-800">Questions</h1>
-      <div className="bg-white shadow rounded p-4 mb-4">
+    <MainLayout className="container m-5">
+      <h1 className="text-2xl font-semibold mb-4 text-white">Perguntas</h1>
+      <div className="bg-white shadow rounded-lg p-4 mb-4">
         <QuestionForm onSubmit={handleQuestionSubmit} />
       </div>
       <QuestionList questions={questions} />
